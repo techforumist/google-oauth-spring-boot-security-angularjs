@@ -5,6 +5,12 @@ import java.security.Principal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Rest controller for getting logged user details
+ * 
+ * @author Sarath Muraleedharan
+ *
+ */
 @RestController
 public class UserRestController {
 	@RequestMapping("/user")

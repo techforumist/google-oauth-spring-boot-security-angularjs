@@ -16,9 +16,14 @@ import org.springframework.security.oauth2.client.token.grant.code.Authorization
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
+/**
+ * Modifying or overriding the default spring boot security.
+ * 
+ * @author Sarath Muraleedharan
+ *
+ */
 @Configurable
 @EnableWebSecurity
-// Modifying or overriding the default spring boot security.
 public class OAuthSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
@@ -44,14 +49,27 @@ public class OAuthSecurityConfig extends WebSecurityConfigurerAdapter {
 		super.configure(web);
 	}
 
+	/**
+	 * Method for creating filter for OAuth authentication
+	 * 
+	 * @return OAuth2ClientAuthenticationProcessingFilter
+	 */
 	private OAuth2ClientAuthenticationProcessingFilter filter() {
+		// Creating the filter for "/google/login" url
 		OAuth2ClientAuthenticationProcessingFilter oAuth2Filter = new OAuth2ClientAuthenticationProcessingFilter(
 				"/google/login");
+
+		// Creating the rest template for getting connected with OAuth service.
+		// The configuration parameters will inject while creating the bean.
 		OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(authorizationCodeResourceDetails,
 				oauth2ClientContext);
 		oAuth2Filter.setRestTemplate(oAuth2RestTemplate);
+
+		// setting the token service. It will help for getting the token and
+		// user details from the OAuth Service
 		oAuth2Filter.setTokenServices(new UserInfoTokenServices(resourceServerProperties.getUserInfoUri(),
 				resourceServerProperties.getClientId()));
+
 		return oAuth2Filter;
 	}
 
@@ -64,14 +82,18 @@ public class OAuthSecurityConfig extends WebSecurityConfigurerAdapter {
 				// starts authorizing configurations
 				.authorizeRequests()
 				// ignore the "/" and "/index.html"
-				.antMatchers("/", "/index.html", "/app/app.js", "/css/**").permitAll()
+				.antMatchers("/", "/**.html", "/**.js").permitAll()
 				// authenticate all remaining URLS
 				.anyRequest().fullyAuthenticated()//
 				.and()//
+				// setting the logout URL "/logout" - default logout URL
 				.logout()//
+				// after successful logout the application will redirect to "/"
+				// path
 				.logoutSuccessUrl("/")//
 				.permitAll()//
 				.and()//
+				// Setting the filter for the URL "/google/login"
 				.addFilterAt(filter(), BasicAuthenticationFilter.class)//
 				.csrf()//
 				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
